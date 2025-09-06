@@ -222,34 +222,413 @@
             font-style: italic;
             padding: 20px;
         }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Strike Hours</h1>
+            <p>Henry Ford Genesys RN Strike</p>
+        </div>
+        
+        <div class="weekly-progress">
+            <div class="current-week" id="currentWeek"></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">0 / 24 hours</div>
+        </div>
+        
+        <div class="main-content">
+            <div class="add-hours-section">
+                <h2 class="section-title">📧 Add Hours from Email</h2>
+                <textarea 
+                    class="paste-area" 
+                    id="emailPaste" 
+                    placeholder="Paste your confirmation email here...
 
-        .export-section {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e8f4f8;
-            border-radius: 10px;
-            border: 1px solid #bee5eb;
+Example:
+Thanks for filling out RN Strike Sign Out - Week 1 
+Email: your.email@gmail.com
+Full Name: Your Name
+Choose Current Day: Thursday, September 4, 2025
+Sign Out Time: 06:25 AM"></textarea>
+                
+                <button class="btn btn-primary" onclick="parseEmail()">
+                    📊 Parse Hours
+                </button>
+                
+                <button class="btn btn-secondary" onclick="toggleManualEntry()">
+                    ✏️ Manual Entry
+                </button>
+                
+                <div class="manual-entry" id="manualEntry">
+                    <h3>Manual Entry</h3>
+                    <div class="form-group">
+                        <label>Date:</label>
+                        <input type="date" class="form-control" id="manualDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Clock In Time:</label>
+                        <input type="time" class="form-control" id="manualTimeIn">
+                    </div>
+                    <div class="form-group">
+                        <label>Clock Out Time:</label>
+                        <input type="time" class="form-control" id="manualTimeOut">
+                    </div>
+                    <button class="btn btn-primary" onclick="addManualEntry()">
+                        ➕ Add Hours
+                    </button>
+                </div>
+            </div>
+            
+            <div id="alertContainer"></div>
+            
+            <div class="hours-log">
+                <h2 class="section-title">📋 This Week's Hours</h2>
+                <div id="hoursLog">
+                    <div class="empty-state">
+                        No hours logged yet. Paste your first confirmation email above!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let hoursData = JSON.parse(localStorage.getItem('strikeHours') || '[]');
+        
+        // Initialize
+        updateDisplay();
+        setCurrentWeek();
+        
+        function setCurrentWeek() {
+            const now = new Date();
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
+            
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            
+            const formatDate = (date) => {
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            };
+            
+            document.getElementById('currentWeek').textContent = 
+                `Week of ${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}`;
         }
         
-        .export-text {
-            width: 100%;
-            min-height: 80px;
-            padding: 10px;
-            border: 1px solid #bee5eb;
-            border-radius: 5px;
-            font-family: monospace;
-            font-size: 12px;
-            background: white;
-            resize: vertical;
+        function parseEmail() {
+            const emailText = document.getElementById('emailPaste').value.trim();
+            
+            if (!emailText) {
+                showAlert('Please paste your confirmation email first!', 'warning');
+                return;
+            }
+            
+            try {
+                const parsed = extractDataFromEmail(emailText);
+                if (parsed) {
+                    addHoursEntry(parsed);
+                    document.getElementById('emailPaste').value = '';
+                    showAlert(`Successfully added ${parsed.hours || 'partial'} hours for ${parsed.date}!`, 'success');
+                } else {
+                    showAlert('Could not parse email. Try manual entry or check the email format.', 'danger');
+                }
+            } catch (error) {
+                showAlert('Error parsing email: ' + error.message, 'danger');
+            }
         }
-
-        .clear-data {
-            background: #dc3545;
-            color: white;
-            margin-top: 10px;
-            font-size: 14px;
-            padding: 10px;
+        
+        function extractDataFromEmail(emailText) {
+            // Extract sign in/out indicator
+            const isSignOut = emailText.toLowerCase().includes('sign out') || emailText.toLowerCase().includes('sign **out**');
+            const isSignIn = emailText.toLowerCase().includes('sign in') || emailText.toLowerCase().includes('sign **in**');
+            
+            // Extract date
+            const dateRegex = /(?:Choose Current Day|Current Day)[^]*?(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[^]*?(\w+ \d{1,2}, \d{4})/i;
+            const dateMatch = emailText.match(dateRegex);
+            
+            if (!dateMatch) {
+                throw new Error('Could not find date in email');
+            }
+            
+            const dateStr = dateMatch[2];
+            const date = new Date(dateStr).toISOString().split('T')[0];
+            
+            // Extract time - handle multiple formats and variations
+            let timeMatch;
+            let hours, minutes, ampm;
+            
+            // Method 1: Look for time pattern with various separators
+            // Handles: "06:**:25 AM", "06*****25 AM", "06 25 AM", etc.
+            timeMatch = emailText.match(/(\d{1,2})\s*[\*\:\-\s]*\s*(\d{2})\s*(AM|PM)/i);
+            
+            if (timeMatch) {
+                hours = parseInt(timeMatch[1]);
+                minutes = parseInt(timeMatch[2]);
+                ampm = timeMatch[3].toUpperCase();
+            } else {
+                // Method 2: Look for "Sign Out Time" section and extract numbers
+                const timeSection = emailText.match(/Sign\s+(?:In|Out)\s+Time[\s\S]*?(AM|PM)/i);
+                if (timeSection) {
+                    const numbers = timeSection[0].match(/\d{1,2}/g);
+                    const ampmMatch = timeSection[0].match(/(AM|PM)/i);
+                    
+                    if (numbers && numbers.length >= 2 && ampmMatch) {
+                        hours = parseInt(numbers[0]);
+                        minutes = parseInt(numbers[1]);
+                        ampm = ampmMatch[1].toUpperCase();
+                    }
+                }
+            }
+            
+            if (!hours && !minutes && !ampm) {
+                // Method 3: Extract all numbers and AM/PM, make best guess
+                const allNumbers = emailText.match(/\d{1,2}/g);
+                const ampmMatch = emailText.match(/(AM|PM)/i);
+                
+                if (allNumbers && allNumbers.length >= 2 && ampmMatch) {
+                    // Take the last two numbers before AM/PM as time
+                    hours = parseInt(allNumbers[allNumbers.length - 2]);
+                    minutes = parseInt(allNumbers[allNumbers.length - 1]);
+                    ampm = ampmMatch[1].toUpperCase();
+                    
+                    // Validate time makes sense
+                    if (hours > 12 || minutes > 59) {
+                        throw new Error('Could not parse time from email. Please try manual entry.');
+                    }
+                }
+            }
+            
+            if (!hours && !minutes && !ampm) {
+                throw new Error('Could not find time in email. Please use manual entry or check email format.');
+            }
+            
+            // Convert to 24-hour format
+            let hour24 = hours;
+            if (ampm === 'PM' && hours !== 12) hour24 += 12;
+            if (ampm === 'AM' && hours === 12) hour24 = 0;
+            
+            const timeStr = `${hour24.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            
+            return {
+                date: date,
+                time: timeStr,
+                type: isSignOut ? 'out' : 'in',
+                rawEmail: emailText
+            };
         }
-
-        .instructions {
-            margin: 20px 0;
+        
+        function addHoursEntry(entry) {
+            // Find existing entry for this date
+            let existingIndex = hoursData.findIndex(item => item.date === entry.date);
+            
+            if (existingIndex === -1) {
+                // New entry
+                hoursData.push({
+                    date: entry.date,
+                    timeIn: entry.type === 'in' ? entry.time : null,
+                    timeOut: entry.type === 'out' ? entry.time : null,
+                    hours: 0
+                });
+                existingIndex = hoursData.length - 1;
+            } else {
+                // Update existing entry
+                if (entry.type === 'in') {
+                    hoursData[existingIndex].timeIn = entry.time;
+                } else {
+                    hoursData[existingIndex].timeOut = entry.time;
+                }
+            }
+            
+            // Calculate hours if both times are present
+            const item = hoursData[existingIndex];
+            if (item.timeIn && item.timeOut) {
+                item.hours = calculateHours(item.timeIn, item.timeOut);
+                
+                // Smart week assignment: if this is a cross-day shift that started before 7 AM,
+                // we might need to adjust the date to reflect when the shift actually started
+                const [inHours] = item.timeIn.split(':').map(Number);
+                const [outHours] = item.timeOut.split(':').map(Number);
+                
+                // If someone clocked in after 7 AM but clocked out before 7 AM (next day),
+                // this is clearly an overnight shift and the hours belong to the start day
+                if (inHours >= 7 && outHours < 7) {
+                    // This is handled correctly - hours go to the date they clocked in
+                }
+                
+                // If someone clocked in before 7 AM, the shift actually belongs to the previous day
+                if (inHours < 7) {
+                    const adjustedDate = new Date(item.date);
+                    adjustedDate.setDate(adjustedDate.getDate() - 1);
+                    item.shiftDate = adjustedDate.toISOString().split('T')[0];
+                } else {
+                    item.shiftDate = item.date;
+                }
+            }
+            
+            saveData();
+            updateDisplay();
+        }
+        
+        function calculateHours(timeIn, timeOut) {
+            const [inHours, inMinutes] = timeIn.split(':').map(Number);
+            const [outHours, outMinutes] = timeOut.split(':').map(Number);
+            
+            let inTotal = inHours * 60 + inMinutes;
+            let outTotal = outHours * 60 + outMinutes;
+            
+            // Handle shifts that cross 7 AM boundary
+            // If someone clocks in before 7 AM and out after 7 AM, 
+            // or clocks in one day and out the next day
+            if (outTotal < inTotal) {
+                outTotal += 24 * 60; // Add 24 hours for next day
+            }
+            
+            const totalMinutes = outTotal - inTotal;
+            return Math.round((totalMinutes / 60) * 100) / 100; // Round to 2 decimal places
+        }
+        
+        function toggleManualEntry() {
+            const manual = document.getElementById('manualEntry');
+            manual.style.display = manual.style.display === 'none' ? 'block' : 'none';
+            
+            if (manual.style.display === 'block') {
+                document.getElementById('manualDate').value = new Date().toISOString().split('T')[0];
+            }
+        }
+        
+        function addManualEntry() {
+            const date = document.getElementById('manualDate').value;
+            const timeIn = document.getElementById('manualTimeIn').value;
+            const timeOut = document.getElementById('manualTimeOut').value;
+            
+            if (!date || !timeIn || !timeOut) {
+                showAlert('Please fill in all fields for manual entry', 'warning');
+                return;
+            }
+            
+            const hours = calculateHours(timeIn, timeOut);
+            
+            // Remove existing entry for this date
+            hoursData = hoursData.filter(item => item.date !== date);
+            
+            // Add new entry
+            hoursData.push({
+                date: date,
+                timeIn: timeIn,
+                timeOut: timeOut,
+                hours: hours
+            });
+            
+            saveData();
+            updateDisplay();
+            
+            // Clear form
+            document.getElementById('manualTimeIn').value = '';
+            document.getElementById('manualTimeOut').value = '';
+            
+            showAlert(`Successfully added ${hours} hours for ${date}!`, 'success');
+            toggleManualEntry();
+        }
+        
+        function getCurrentWeekHours() {
+            const now = new Date();
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
+            startOfWeek.setHours(0, 0, 0, 0);
+            
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+            
+            return hoursData.filter(item => {
+                const itemDate = new Date(item.date);
+                return itemDate >= startOfWeek && itemDate <= endOfWeek;
+            });
+        }
+        
+        function updateDisplay() {
+            const weekHours = getCurrentWeekHours();
+            const totalHours = weekHours.reduce((sum, item) => sum + (item.hours || 0), 0);
+            
+            // Update progress bar
+            const progressPercent = Math.min((totalHours / 24) * 100, 100);
+            document.getElementById('progressFill').style.width = progressPercent + '%';
+            document.getElementById('progressText').textContent = `${totalHours.toFixed(1)} / 24 hours`;
+            
+            // Update hours log
+            const logContainer = document.getElementById('hoursLog');
+            
+            if (weekHours.length === 0) {
+                logContainer.innerHTML = '<div class="empty-state">No hours logged yet. Paste your first confirmation email above!</div>';
+            } else {
+                // Sort by date (newest first)
+                weekHours.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                logContainer.innerHTML = weekHours.map(item => {
+                    const date = new Date(item.date);
+                    const dateStr = date.toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        month: 'short', 
+                        day: 'numeric' 
+                    });
+                    
+                    const timeStr = item.timeIn && item.timeOut 
+                        ? `${formatTime(item.timeIn)} - ${formatTime(item.timeOut)}`
+                        : item.timeIn 
+                            ? `In: ${formatTime(item.timeIn)}`
+                            : item.timeOut 
+                                ? `Out: ${formatTime(item.timeOut)}`
+                                : 'Times pending';
+                    
+                    const hoursStr = item.hours > 0 ? `${item.hours.toFixed(1)} hours` : 'Calculating...';
+                    
+                    return `
+                        <div class="log-entry">
+                            <div class="log-date">${dateStr}</div>
+                            <div class="log-hours">${hoursStr}</div>
+                            <div class="log-times">${timeStr}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // Show warning if behind on hours
+            if (totalHours < 24) {
+                const remaining = 24 - totalHours;
+                if (remaining <= 8) {
+                    showAlert(`⚠️ You need ${remaining.toFixed(1)} more hours this week for strike pay!`, 'warning');
+                }
+            }
+        }
+        
+        function formatTime(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+        }
+        
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            
+            container.innerHTML = '';
+            container.appendChild(alert);
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+        
+        function saveData() {
+            localStorage.setItem('strikeHours', JSON.stringify(hoursData));
+        }
+    </script>
+</body>
+</html>
