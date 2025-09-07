@@ -551,54 +551,21 @@ Sign Out Time: 06:25 AM"></textarea>
         }
         
         function updateDisplay() {
-            const weekHours = getCurrentWeekHours();
-            const totalHours = weekHours.reduce((sum, item) => sum + (item.hours || 0), 0);
+            // Update current week progress bar (always shows this week)
+            const currentWeekData = getWeekHours(0);
+            const currentWeekTotal = currentWeekData.hours.reduce((sum, item) => sum + (item.hours || 0), 0);
             
             // Update progress bar
-            const progressPercent = Math.min((totalHours / 24) * 100, 100);
+            const progressPercent = Math.min((currentWeekTotal / 24) * 100, 100);
             document.getElementById('progressFill').style.width = progressPercent + '%';
-            document.getElementById('progressText').textContent = `${totalHours.toFixed(1)} / 24 hours`;
+            document.getElementById('progressText').textContent = `${currentWeekTotal.toFixed(1)} / 24 hours`;
             
-            // Update hours log
-            const logContainer = document.getElementById('hoursLog');
+            // Update the week view (could be different week)
+            updateWeekDisplay();
             
-            if (weekHours.length === 0) {
-                logContainer.innerHTML = '<div class="empty-state">No hours logged yet. Paste your first confirmation email above!</div>';
-            } else {
-                // Sort by date (newest first)
-                weekHours.sort((a, b) => new Date(b.date) - new Date(a.date));
-                
-                logContainer.innerHTML = weekHours.map(item => {
-                    const date = new Date(item.date);
-                    const dateStr = date.toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        month: 'short', 
-                        day: 'numeric' 
-                    });
-                    
-                    const timeStr = item.timeIn && item.timeOut 
-                        ? `${formatTime(item.timeIn)} - ${formatTime(item.timeOut)}`
-                        : item.timeIn 
-                            ? `In: ${formatTime(item.timeIn)}`
-                            : item.timeOut 
-                                ? `Out: ${formatTime(item.timeOut)}`
-                                : 'Times pending';
-                    
-                    const hoursStr = item.hours > 0 ? `${item.hours.toFixed(1)} hours` : 'Calculating...';
-                    
-                    return `
-                        <div class="log-entry">
-                            <div class="log-date">${dateStr}</div>
-                            <div class="log-hours">${hoursStr}</div>
-                            <div class="log-times">${timeStr}</div>
-                        </div>
-                    `;
-                }).join('');
-            }
-            
-            // Show warning if behind on hours
-            if (totalHours < 24) {
-                const remaining = 24 - totalHours;
+            // Show warning if behind on hours (only for current week)
+            if (currentWeekTotal < 24 && currentWeekOffset === 0) {
+                const remaining = 24 - currentWeekTotal;
                 if (remaining <= 8) {
                     showAlert(`⚠️ You need ${remaining.toFixed(1)} more hours this week for strike pay!`, 'warning');
                 }
@@ -628,6 +595,70 @@ Sign Out Time: 06:25 AM"></textarea>
         
         function saveData() {
             localStorage.setItem('strikeHours', JSON.stringify(hoursData));
+        }
+
+        function editEntry(date) {
+            const entry = hoursData.find(item => item.date === date);
+            if (!entry) return;
+
+            const editContainer = document.getElementById('editContainer');
+            editContainer.innerHTML = `
+                <div class="edit-form">
+                    <h3>Edit Entry for ${new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</h3>
+                    <div class="form-group">
+                        <label>Clock In Time:</label>
+                        <input type="time" class="form-control" id="editTimeIn" value="${entry.timeIn || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Clock Out Time:</label>
+                        <input type="time" class="form-control" id="editTimeOut" value="${entry.timeOut || ''}">
+                    </div>
+                    <div class="edit-actions">
+                        <button class="btn-save" onclick="saveEdit('${date}')">💾 Save Changes</button>
+                        <button class="btn-cancel" onclick="cancelEdit()">❌ Cancel</button>
+                    </div>
+                </div>
+            `;
+            
+            // Scroll to edit form
+            editContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function saveEdit(date) {
+            const timeIn = document.getElementById('editTimeIn').value;
+            const timeOut = document.getElementById('editTimeOut').value;
+            
+            if (!timeIn || !timeOut) {
+                showAlert('Please enter both clock in and clock out times', 'warning');
+                return;
+            }
+            
+            // Find and update the entry
+            const entryIndex = hoursData.findIndex(item => item.date === date);
+            if (entryIndex !== -1) {
+                hoursData[entryIndex].timeIn = timeIn;
+                hoursData[entryIndex].timeOut = timeOut;
+                hoursData[entryIndex].hours = calculateHours(timeIn, timeOut);
+                
+                saveData();
+                updateDisplay();
+                cancelEdit();
+                
+                showAlert('Entry updated successfully!', 'success');
+            }
+        }
+
+        function cancelEdit() {
+            document.getElementById('editContainer').innerHTML = '';
+        }
+
+        function deleteEntry(date) {
+            if (confirm(`Are you sure you want to delete the entry for ${new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}?`)) {
+                hoursData = hoursData.filter(item => item.date !== date);
+                saveData();
+                updateDisplay();
+                showAlert('Entry deleted successfully!', 'success');
+            }
         }
     </script>
 </body>
