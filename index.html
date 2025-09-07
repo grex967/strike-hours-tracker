@@ -399,13 +399,12 @@ Sign Out Time: 06:25 AM"></textarea>
                 return;
             }
 
-            const effectiveDate = getEffectiveDate(date, timeIn);
             const hours = calculateHours(timeIn, timeOut);
 
-            // Create new shift (allow multiple shifts per day)
+            // For manual entry, use the EXACT date specified - no 7 AM boundary shifting
             const newShift = {
                 id: generateShiftId(),
-                date: effectiveDate,
+                date: date,  // Use exactly what the user entered
                 timeIn: timeIn,
                 timeOut: timeOut,
                 hours: hours
@@ -418,7 +417,7 @@ Sign Out Time: 06:25 AM"></textarea>
             document.getElementById('manualTimeIn').value = '';
             document.getElementById('manualTimeOut').value = '';
 
-            const dateStr = new Date(effectiveDate).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+            const dateStr = new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
             showAlert(`Added ${hours.toFixed(1)} hours for ${dateStr}`, 'success');
             toggleManualEntry();
         }
