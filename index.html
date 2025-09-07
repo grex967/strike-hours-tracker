@@ -417,7 +417,14 @@ Sign Out Time: 06:25 AM"></textarea>
             document.getElementById('manualTimeIn').value = '';
             document.getElementById('manualTimeOut').value = '';
 
-            const dateStr = new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+            // Parse date manually for success message too
+            const [year, month, day] = date.split('-').map(Number);
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const dateObj = new Date(year, month - 1, day);
+            const dayOfWeek = dateObj.getDay();
+            const dateStr = `${dayNames[dayOfWeek]}, ${monthNames[month - 1]} ${day}`;
+
             showAlert(`Added ${hours.toFixed(1)} hours for ${dateStr}`, 'success');
             toggleManualEntry();
         }
