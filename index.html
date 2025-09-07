@@ -530,7 +530,36 @@ Sign Out Time: 06:25 AM"></textarea>
             document.getElementById('manualTimeIn').value = '';
             document.getElementById('manualTimeOut').value = '';
             
-            showAlert(`Successfully added ${hours} hours for ${date}!`, 'success');
+            // Show success message with week info
+            const weekInfo = getWeekInfoForDate(date);
+            const entryDate = new Date(date);
+            const dateStr = entryDate.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+            
+            showAlert(`✅ Added ${hours} hours for ${dateStr} (${weekInfo})`, 'success');
+            
+            // If this entry is for a different week than currently viewed, offer to navigate
+            const currentWeekData = getWeekHours(0);
+            const entryWeekStart = new Date(entryDate);
+            entryWeekStart.setDate(entryDate.getDate() - entryDate.getDay());
+            entryWeekStart.setHours(7, 0, 0, 0);
+            
+            const isCurrentWeek = currentWeekData.startDate.getTime() === entryWeekStart.getTime();
+            
+            if (!isCurrentWeek && currentWeekOffset === 0) {
+                setTimeout(() => {
+                    if (confirm(`This entry was added to ${weekInfo}. Would you like to view that week now?`)) {
+                        // Calculate how many weeks to go back
+                        const weeksDiff = Math.round((entryWeekStart - currentWeekData.startDate) / (7 * 24 * 60 * 60 * 1000));
+                        currentWeekOffset = weeksDiff;
+                        updateWeekDisplay();
+                    }
+                }, 1000);
+            }
+            
             toggleManualEntry();
         }
         
