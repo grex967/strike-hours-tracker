@@ -5,384 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Strike Hours Tracker</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 10px;
-        }
-        
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-        
-        .header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-        
-        .weekly-progress {
-            padding: 20px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .progress-bar {
-            background: #e9ecef;
-            border-radius: 10px;
-            height: 20px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #28a745, #20c997);
-            transition: width 0.3s ease;
-            border-radius: 10px;
-        }
-        
-        .progress-text {
-            text-align: center;
-            font-weight: bold;
-            color: #495057;
-        }
-        
-        .current-week {
-            text-align: center;
-            color: #6c757d;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        
-        .main-content {
-            padding: 20px;
-        }
-        
-        .add-hours-section {
-            margin-bottom: 30px;
-        }
-        
-        .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #343a40;
-        }
-        
-        .paste-area {
-            width: 100%;
-            min-height: 120px;
-            padding: 15px;
-            border: 2px dashed #dee2e6;
-            border-radius: 10px;
-            font-family: monospace;
-            font-size: 14px;
-            resize: vertical;
-            margin-bottom: 15px;
-        }
-        
-        .paste-area:focus {
-            border-color: #007bff;
-            outline: none;
-        }
-        
-        .btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
-        }
-        
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-            margin-top: 10px;
-        }
-        
-        .manual-entry {
-            display: none;
-            margin-top: 20px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #495057;
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        
-        .hours-log {
-            margin-top: 30px;
-        }
-        
-        .log-entry {
-            padding: 15px;
-            margin-bottom: 10px;
-            background: #f8f9fa;
-            border-left: 4px solid #007bff;
-            border-radius: 5px;
-        }
-        
-        .log-date {
-            font-weight: bold;
-            color: #495057;
-        }
-        
-        .log-hours {
-            color: #28a745;
-            font-weight: bold;
-        }
-        
-        .log-times {
-            font-size: 14px;
-            color: #6c757d;
-        }
-        
-        .alert {
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .alert-warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-        
-        .alert-danger {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f1b0b7;
-        }
-        
-        .empty-state {
-            text-align: center;
-            color: #6c757d;
-            font-style: italic;
-            padding: 20px;
-        }
-
-        .week-selector {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .btn-week {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-week:hover {
-            background: #0056b3;
-        }
-
-        .btn-week:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
-        }
-
-        .current-week-display {
-            font-weight: bold;
-            color: #495057;
-            text-align: center;
-            flex: 1;
-        }
-
-        .week-summary {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border-left: 4px solid #2196f3;
-        }
-
-        .week-total {
-            font-size: 18px;
-            font-weight: bold;
-            color: #1976d2;
-            margin-bottom: 5px;
-        }
-
-        .week-status {
-            font-size: 14px;
-            color: #424242;
-        }
-
-        .week-status.complete {
-            color: #2e7d32;
-        }
-
-        .week-status.incomplete {
-            color: #d32f2f;
-        }
-
-        .log-actions {
-            margin-top: 8px;
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-edit, .btn-delete {
-            background: none;
-            border: 1px solid #dee2e6;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-edit {
-            color: #007bff;
-            border-color: #007bff;
-        }
-
-        .btn-edit:hover {
-            background: #007bff;
-            color: white;
-        }
-
-        .btn-delete {
-            color: #dc3545;
-            border-color: #dc3545;
-        }
-
-        .btn-delete:hover {
-            background: #dc3545;
-            color: white;
-        }
-
-        .edit-form {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-
-        .edit-form h3 {
-            margin-bottom: 15px;
-            color: #856404;
-        }
-
-        .edit-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .btn-save {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .btn-cancel {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .quick-dates {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .btn-quick-date {
-            background: #e9ecef;
-            border: 1px solid #dee2e6;
-            padding: 6px 12px;
-            border-radius: 5px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-quick-date:hover {
-            background: #007bff;
-            color: white;
-            border-color: #007bff;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 10px; }
+        .container { max-width: 400px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 20px; text-align: center; }
+        .header h1 { font-size: 24px; margin-bottom: 5px; }
+        .header p { opacity: 0.9; font-size: 14px; }
+        .weekly-progress { padding: 20px; background: #f8f9fa; border-bottom: 1px solid #eee; }
+        .progress-bar { background: #e9ecef; border-radius: 10px; height: 20px; overflow: hidden; margin-bottom: 10px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #28a745, #20c997); transition: width 0.3s ease; border-radius: 10px; }
+        .progress-text { text-align: center; font-weight: bold; color: #495057; }
+        .current-week { text-align: center; color: #6c757d; font-size: 14px; margin-bottom: 10px; }
+        .main-content { padding: 20px; }
+        .add-hours-section { margin-bottom: 30px; }
+        .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #343a40; }
+        .paste-area { width: 100%; min-height: 120px; padding: 15px; border: 2px dashed #dee2e6; border-radius: 10px; font-family: monospace; font-size: 14px; resize: vertical; margin-bottom: 15px; }
+        .paste-area:focus { border-color: #007bff; outline: none; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; }
+        .btn-primary { background: linear-gradient(135deg, #007bff, #0056b3); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,123,255,0.3); }
+        .btn-secondary { background: #6c757d; color: white; margin-top: 10px; }
+        .manual-entry { display: none; margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #495057; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 16px; }
+        .hours-log { margin-top: 30px; }
+        .log-entry { padding: 15px; margin-bottom: 10px; background: #f8f9fa; border-left: 4px solid #007bff; border-radius: 5px; }
+        .log-date { font-weight: bold; color: #495057; }
+        .log-hours { color: #28a745; font-weight: bold; }
+        .log-times { font-size: 14px; color: #6c757d; }
+        .alert { padding: 15px; margin-bottom: 15px; border-radius: 5px; font-weight: bold; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f1b0b7; }
+        .empty-state { text-align: center; color: #6c757d; font-style: italic; padding: 20px; }
+        .week-selector { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; }
+        .btn-week { background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-size: 14px; cursor: pointer; transition: all 0.2s ease; }
+        .btn-week:hover { background: #0056b3; }
+        .btn-week:disabled { background: #6c757d; cursor: not-allowed; }
+        .current-week-display { font-weight: bold; color: #495057; text-align: center; flex: 1; }
+        .week-summary { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #2196f3; }
+        .week-total { font-size: 18px; font-weight: bold; color: #1976d2; margin-bottom: 5px; }
+        .week-status { font-size: 14px; color: #424242; }
+        .week-status.complete { color: #2e7d32; }
+        .week-status.incomplete { color: #d32f2f; }
+        .log-actions { margin-top: 8px; display: flex; gap: 8px; }
+        .btn-edit, .btn-delete { background: none; border: 1px solid #dee2e6; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; }
+        .btn-edit { color: #007bff; border-color: #007bff; }
+        .btn-edit:hover { background: #007bff; color: white; }
+        .btn-delete { color: #dc3545; border-color: #dc3545; }
+        .btn-delete:hover { background: #dc3545; color: white; }
+        .edit-form { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 15px 0; }
+        .edit-form h3 { margin-bottom: 15px; color: #856404; }
+        .edit-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-save { background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .btn-cancel { background: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .quick-dates { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .btn-quick-date { background: #e9ecef; border: 1px solid #dee2e6; padding: 6px 12px; border-radius: 5px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; }
+        .btn-quick-date:hover { background: #007bff; color: white; border-color: #007bff; }
     </style>
 </head>
 <body>
@@ -475,11 +155,18 @@ Sign Out Time: 06:25 AM"></textarea>
     </div>
 
     <script>
+        // ===============================
         // Global variables
+        // ===============================
         let hoursData = JSON.parse(localStorage.getItem('strikeHours') || '[]');
         let currentWeekOffset = 0;
 
-        // Utility functions first
+        // 7AM shift boundary
+        const SHIFT_START_HOUR = 7;
+
+        // ===============================
+        // Utility functions
+        // ===============================
         function formatTime(timeStr) {
             const [hours, minutes] = timeStr.split(':').map(Number);
             const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -487,17 +174,35 @@ Sign Out Time: 06:25 AM"></textarea>
             return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
         }
 
-        function calculateHours(timeIn, timeOut) {
-            const [inHours, inMinutes] = timeIn.split(':').map(Number);
-            const [outHours, outMinutes] = timeOut.split(':').map(Number);
-            
-            let inTotal = inHours * 60 + inMinutes;
-            let outTotal = outHours * 60 + outMinutes;
-            
-            if (outTotal < inTotal) {
-                outTotal += 24 * 60;
+        function minutesFromHHMM(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        function isoPrevDay(isoDateStr) {
+            const d = new Date(isoDateStr + 'T00:00:00');
+            d.setDate(d.getDate() - 1);
+            return d.toISOString().split('T')[0];
+        }
+
+        /**
+         * Decide which "day" the entry belongs to (07:00 boundary).
+         * - For complete manual entries: use clock-in time.
+         * - For parsed emails with only IN or OUT: use the time we have.
+         */
+        function getEffectiveDate(baseISODate, timeStr, type /* 'in' | 'out' */) {
+            const mins = minutesFromHHMM(timeStr);
+            // Rule: if the determining time is before 07:00, it belongs to previous day.
+            if (mins < SHIFT_START_HOUR * 60) {
+                return isoPrevDay(baseISODate);
             }
-            
+            return baseISODate;
+        }
+
+        function calculateHours(timeIn, timeOut) {
+            const inTotal = minutesFromHHMM(timeIn);
+            let outTotal = minutesFromHHMM(timeOut);
+            if (outTotal < inTotal) outTotal += 24 * 60;
             const totalMinutes = outTotal - inTotal;
             return Math.round((totalMinutes / 60) * 100) / 100;
         }
@@ -511,36 +216,30 @@ Sign Out Time: 06:25 AM"></textarea>
             const alert = document.createElement('div');
             alert.className = `alert alert-${type}`;
             alert.textContent = message;
-            
             container.innerHTML = '';
             container.appendChild(alert);
-            
-            setTimeout(() => {
-                container.innerHTML = '';
-            }, 5000);
+            setTimeout(() => { container.innerHTML = ''; }, 5000);
         }
 
-        // Week calculation functions
+        // ===============================
+        // Week calculation
+        // ===============================
         function getWeekHours(weekOffset = 0) {
             const now = new Date();
-            
             const adjustedNow = new Date(now);
-            if (now.getHours() < 7) {
-                adjustedNow.setDate(now.getDate() - 1);
-            }
-            
+            if (now.getHours() < SHIFT_START_HOUR) adjustedNow.setDate(now.getDate() - 1);
+
             const startOfWeek = new Date(adjustedNow);
             startOfWeek.setDate(adjustedNow.getDate() - adjustedNow.getDay() + (weekOffset * 7));
-            startOfWeek.setHours(7, 0, 0, 0);
-            
+            startOfWeek.setHours(SHIFT_START_HOUR, 0, 0, 0);
+
             const endOfWeek = new Date(startOfWeek);
             endOfWeek.setDate(startOfWeek.getDate() + 7);
-            endOfWeek.setHours(6, 59, 59, 999);
-            
+            endOfWeek.setHours(SHIFT_START_HOUR - 1, 59, 59, 999); // up to 06:59:59.999 next week
+
             return {
                 hours: hoursData.filter(item => {
-                    // Use the date as entered - this represents when the shift started
-                    // The union's rule is that shifts belong to the day they start
+                    // item.date is already the effective "shift day" (post-fix)
                     const itemDate = new Date(item.date + 'T07:00:00');
                     return itemDate >= startOfWeek && itemDate < endOfWeek;
                 }),
@@ -551,92 +250,75 @@ Sign Out Time: 06:25 AM"></textarea>
 
         function setCurrentWeek() {
             const now = new Date();
-            
             const adjustedNow = new Date(now);
-            if (now.getHours() < 7) {
-                adjustedNow.setDate(now.getDate() - 1);
-            }
-            
+            if (now.getHours() < SHIFT_START_HOUR) adjustedNow.setDate(now.getDate() - 1);
+
             const startOfWeek = new Date(adjustedNow);
             startOfWeek.setDate(adjustedNow.getDate() - adjustedNow.getDay());
-            startOfWeek.setHours(7, 0, 0, 0);
-            
+            startOfWeek.setHours(SHIFT_START_HOUR, 0, 0, 0);
+
             const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 6);
-            endOfWeek.setHours(23, 59, 59, 999);
-            
-            const formatDate = (date) => {
-                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            };
-            
+            endOfWeek.setDate(startOfWeek.getDate() + 7); // display end boundary at next week's 7AM
+            const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
             document.getElementById('currentWeek').textContent = 
-                `Week of ${formatDate(startOfWeek)} 7AM - ${formatDate(endOfWeek)} 7AM`;
+                `Week of ${fmt(startOfWeek)} 7AM - ${fmt(new Date(endOfWeek - 1))} 7AM`;
         }
 
-        // Email parsing functions
+        // ===============================
+        // Email parsing
+        // ===============================
         function extractDataFromEmail(emailText) {
             const isSignOut = emailText.toLowerCase().includes('sign out') || emailText.toLowerCase().includes('sign **out**');
-            
+
             const dateRegex = /(?:Choose Current Day|Current Day)[^]*?(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[^]*?(\w+ \d{1,2}, \d{4})/i;
             const dateMatch = emailText.match(dateRegex);
-            
-            if (!dateMatch) {
-                throw new Error('Could not find date in email');
-            }
-            
+            if (!dateMatch) throw new Error('Could not find date in email');
+
             const dateStr = dateMatch[2];
-            const date = new Date(dateStr).toISOString().split('T')[0];
-            
-            let timeMatch;
+            const baseISODate = new Date(dateStr).toISOString().split('T')[0];
+
+            let timeMatch = emailText.match(/(\d{1,2})\s*[\*\:\-\s]*\s*(\d{2})\s*(AM|PM)/i);
             let hours, minutes, ampm;
-            
-            timeMatch = emailText.match(/(\d{1,2})\s*[\*\:\-\s]*\s*(\d{2})\s*(AM|PM)/i);
-            
+
             if (timeMatch) {
-                hours = parseInt(timeMatch[1]);
-                minutes = parseInt(timeMatch[2]);
-                ampm = timeMatch[3].toUpperCase();
+                hours = parseInt(timeMatch[1]); minutes = parseInt(timeMatch[2]); ampm = timeMatch[3].toUpperCase();
             } else {
                 const timeSection = emailText.match(/Sign\s+(?:In|Out)\s+Time[\s\S]*?(AM|PM)/i);
                 if (timeSection) {
                     const numbers = timeSection[0].match(/\d{1,2}/g);
                     const ampmMatch = timeSection[0].match(/(AM|PM)/i);
-                    
                     if (numbers && numbers.length >= 2 && ampmMatch) {
-                        hours = parseInt(numbers[0]);
-                        minutes = parseInt(numbers[1]);
-                        ampm = ampmMatch[1].toUpperCase();
+                        hours = parseInt(numbers[0]); minutes = parseInt(numbers[1]); ampm = ampmMatch[1].toUpperCase();
                     }
                 }
             }
-            
-            if (!hours && !minutes && !ampm) {
+
+            if (hours === undefined || minutes === undefined || !ampm) {
                 const allNumbers = emailText.match(/\d{1,2}/g);
                 const ampmMatch = emailText.match(/(AM|PM)/i);
-                
                 if (allNumbers && allNumbers.length >= 2 && ampmMatch) {
                     hours = parseInt(allNumbers[allNumbers.length - 2]);
                     minutes = parseInt(allNumbers[allNumbers.length - 1]);
                     ampm = ampmMatch[1].toUpperCase();
-                    
                     if (hours > 12 || minutes > 59) {
                         throw new Error('Could not parse time from email. Please try manual entry.');
                     }
+                } else {
+                    throw new Error('Could not find time in email. Please use manual entry or check email format.');
                 }
             }
-            
-            if (!hours && !minutes && !ampm) {
-                throw new Error('Could not find time in email. Please use manual entry or check email format.');
-            }
-            
+
             let hour24 = hours;
             if (ampm === 'PM' && hours !== 12) hour24 += 12;
             if (ampm === 'AM' && hours === 12) hour24 = 0;
-            
             const timeStr = `${hour24.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-            
+
+            // Determine effective date using the time we have (in or out)
+            const effectiveISO = getEffectiveDate(baseISODate, timeStr, isSignOut ? 'out' : 'in');
+
             return {
-                date: date,
+                date: effectiveISO,     // <- already adjusted to the proper "shift day"
                 time: timeStr,
                 type: isSignOut ? 'out' : 'in',
                 rawEmail: emailText
@@ -645,18 +327,14 @@ Sign Out Time: 06:25 AM"></textarea>
 
         function parseEmail() {
             const emailText = document.getElementById('emailPaste').value.trim();
-            
-            if (!emailText) {
-                showAlert('Please paste your confirmation email first!', 'warning');
-                return;
-            }
-            
+            if (!emailText) { showAlert('Please paste your confirmation email first!', 'warning'); return; }
+
             try {
                 const parsed = extractDataFromEmail(emailText);
                 if (parsed) {
                     addHoursEntry(parsed);
                     document.getElementById('emailPaste').value = '';
-                    showAlert(`Successfully added ${parsed.hours || 'partial'} hours for ${parsed.date}!`, 'success');
+                    showAlert(`Successfully added ${parsed.type.toUpperCase()} time for ${parsed.date}`, 'success');
                 } else {
                     showAlert('Could not parse email. Try manual entry or check the email format.', 'danger');
                 }
@@ -665,41 +343,43 @@ Sign Out Time: 06:25 AM"></textarea>
             }
         }
 
-        // Data manipulation functions
-        function addHoursEntry(entry) {
-            let existingIndex = hoursData.findIndex(item => item.date === entry.date);
-            
-            if (existingIndex === -1) {
-                hoursData.push({
-                    date: entry.date,
-                    timeIn: entry.type === 'in' ? entry.time : null,
-                    timeOut: entry.type === 'out' ? entry.time : null,
-                    hours: 0
-                });
-                existingIndex = hoursData.length - 1;
+        // ===============================
+        // Data manipulation
+        // ===============================
+        function upsertByDate(dateKey, updater) {
+            let idx = hoursData.findIndex(item => item.date === dateKey);
+            if (idx === -1) {
+                const fresh = { date: dateKey, timeIn: null, timeOut: null, hours: 0 };
+                updater(fresh);
+                hoursData.push(fresh);
             } else {
-                if (entry.type === 'in') {
-                    hoursData[existingIndex].timeIn = entry.time;
-                } else {
-                    hoursData[existingIndex].timeOut = entry.time;
+                updater(hoursData[idx]);
+            }
+        }
+
+        function addHoursEntry(entry) {
+            // entry.date is already effective shift day when coming from email
+            const dateKey = entry.date;
+
+            upsertByDate(dateKey, (item) => {
+                if (entry.type === 'in') item.timeIn = entry.time;
+                else item.timeOut = entry.time;
+
+                if (item.timeIn && item.timeOut) {
+                    item.hours = calculateHours(item.timeIn, item.timeOut);
                 }
-            }
-            
-            const item = hoursData[existingIndex];
-            if (item.timeIn && item.timeOut) {
-                item.hours = calculateHours(item.timeIn, item.timeOut);
-                // DO NOT adjust the date - keep it exactly as entered
-            }
-            
+            });
+
             saveData();
             updateDisplay();
         }
 
-        // Manual entry functions
+        // ===============================
+        // Manual entry
+        // ===============================
         function toggleManualEntry() {
             const manual = document.getElementById('manualEntry');
             manual.style.display = manual.style.display === 'none' ? 'block' : 'none';
-            
             if (manual.style.display === 'block') {
                 document.getElementById('manualDate').value = new Date().toISOString().split('T')[0];
             }
@@ -715,41 +395,39 @@ Sign Out Time: 06:25 AM"></textarea>
             const date = document.getElementById('manualDate').value;
             const timeIn = document.getElementById('manualTimeIn').value;
             const timeOut = document.getElementById('manualTimeOut').value;
-            
+
             if (!date || !timeIn || !timeOut) {
                 showAlert('Please fill in all fields for manual entry', 'warning');
                 return;
             }
-            
+
+            const effectiveISO = getEffectiveDate(date, timeIn, 'in'); // decide by clock-in (union rule)
             const hours = calculateHours(timeIn, timeOut);
-            
-            hoursData = hoursData.filter(item => item.date !== date);
-            
+
+            // Remove any existing entry for that effective day (we're overwriting with the complete pair)
+            hoursData = hoursData.filter(item => item.date !== effectiveISO);
+
             hoursData.push({
-                date: date,
+                date: effectiveISO,
                 timeIn: timeIn,
                 timeOut: timeOut,
                 hours: hours
             });
-            
+
             saveData();
             updateDisplay();
-            
+
             document.getElementById('manualTimeIn').value = '';
             document.getElementById('manualTimeOut').value = '';
-            
-            const entryDate = new Date(date);
-            const dateStr = entryDate.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                month: 'short', 
-                day: 'numeric' 
-            });
-            
+
+            const dateStr = new Date(effectiveISO).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
             showAlert(`✅ Added ${hours} hours for ${dateStr}`, 'success');
             toggleManualEntry();
         }
 
-        // Week navigation functions
+        // ===============================
+        // Week navigation & display
+        // ===============================
         function changeWeekView(direction) {
             currentWeekOffset += direction;
             updateWeekDisplay();
@@ -758,25 +436,16 @@ Sign Out Time: 06:25 AM"></textarea>
         function updateWeekDisplay() {
             const weekData = getWeekHours(currentWeekOffset);
             const totalHours = weekData.hours.reduce((sum, item) => sum + (item.hours || 0), 0);
-            
-            const formatDate = (date) => {
-                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            };
-            
-            let weekLabel;
-            if (currentWeekOffset === 0) {
-                weekLabel = 'This Week';
-            } else if (currentWeekOffset === -1) {
-                weekLabel = 'Last Week';
-            } else if (currentWeekOffset === 1) {
-                weekLabel = 'Next Week';
-            } else {
-                weekLabel = `${Math.abs(currentWeekOffset)} weeks ${currentWeekOffset < 0 ? 'ago' : 'ahead'}`;
-            }
-            
+
+            const weekLabel =
+                currentWeekOffset === 0 ? 'This Week' :
+                currentWeekOffset === -1 ? 'Last Week' :
+                currentWeekOffset === 1 ? 'Next Week' :
+                `${Math.abs(currentWeekOffset)} weeks ${currentWeekOffset < 0 ? 'ago' : 'ahead'}`;
+
             document.getElementById('currentWeekDisplay').textContent = weekLabel;
             document.getElementById('weekTotalHours').textContent = totalHours.toFixed(1);
-            
+
             const statusEl = document.getElementById('weekStatus');
             if (totalHours >= 24) {
                 statusEl.textContent = '✅ Strike pay requirement met!';
@@ -788,32 +457,24 @@ Sign Out Time: 06:25 AM"></textarea>
                 statusEl.textContent = `Need ${(24 - totalHours).toFixed(1)} more hours for strike pay`;
                 statusEl.className = 'week-status';
             }
-            
+
             const logContainer = document.getElementById('hoursLog');
-            
             if (weekData.hours.length === 0) {
                 logContainer.innerHTML = '<div class="empty-state">No hours logged for this week.</div>';
             } else {
                 weekData.hours.sort((a, b) => new Date(b.date) - new Date(a.date));
-                
                 logContainer.innerHTML = weekData.hours.map((item) => {
                     const date = new Date(item.date);
-                    const dateStr = date.toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        month: 'short', 
-                        day: 'numeric' 
-                    });
-                    
-                    const timeStr = item.timeIn && item.timeOut 
+                    const dateStr = date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+                    const timeStr = item.timeIn && item.timeOut
                         ? `${formatTime(item.timeIn)} - ${formatTime(item.timeOut)}`
-                        : item.timeIn 
+                        : item.timeIn
                             ? `In: ${formatTime(item.timeIn)}`
-                            : item.timeOut 
+                            : item.timeOut
                                 ? `Out: ${formatTime(item.timeOut)}`
                                 : 'Times pending';
-                    
                     const hoursStr = item.hours > 0 ? `${item.hours.toFixed(1)} hours` : 'Calculating...';
-                    
+
                     return `
                         <div class="log-entry">
                             <div class="log-date">${dateStr}</div>
@@ -827,11 +488,13 @@ Sign Out Time: 06:25 AM"></textarea>
                     `;
                 }).join('');
             }
-            
+
             document.getElementById('nextWeekBtn').disabled = currentWeekOffset >= 0;
         }
 
-        // Edit functions
+        // ===============================
+        // Edit / Delete
+        // ===============================
         function editEntry(date) {
             const entry = hoursData.find(item => item.date === date);
             if (!entry) return;
@@ -854,31 +517,35 @@ Sign Out Time: 06:25 AM"></textarea>
                     </div>
                 </div>
             `;
-            
             editContainer.scrollIntoView({ behavior: 'smooth' });
         }
 
-        function saveEdit(date) {
+        function saveEdit(originalDateKey) {
             const timeIn = document.getElementById('editTimeIn').value;
             const timeOut = document.getElementById('editTimeOut').value;
-            
+
             if (!timeIn || !timeOut) {
                 showAlert('Please enter both clock in and clock out times', 'warning');
                 return;
             }
-            
-            const entryIndex = hoursData.findIndex(item => item.date === date);
-            if (entryIndex !== -1) {
-                hoursData[entryIndex].timeIn = timeIn;
-                hoursData[entryIndex].timeOut = timeOut;
-                hoursData[entryIndex].hours = calculateHours(timeIn, timeOut);
-                
-                saveData();
-                updateDisplay();
-                cancelEdit();
-                
-                showAlert('Entry updated successfully!', 'success');
-            }
+
+            // Re-evaluate effective date in case editing moves an entry across the 7AM boundary
+            const newEffective = getEffectiveDate(originalDateKey, timeIn, 'in');
+
+            // Remove original record
+            hoursData = hoursData.filter(item => item.date !== originalDateKey);
+
+            // Upsert at the (possibly new) effective key
+            upsertByDate(newEffective, (item) => {
+                item.timeIn = timeIn;
+                item.timeOut = timeOut;
+                item.hours = calculateHours(timeIn, timeOut);
+            });
+
+            saveData();
+            updateDisplay();
+            cancelEdit();
+            showAlert('Entry updated successfully!', 'success');
         }
 
         function cancelEdit() {
@@ -894,17 +561,19 @@ Sign Out Time: 06:25 AM"></textarea>
             }
         }
 
-        // Main update function
+        // ===============================
+        // Main update
+        // ===============================
         function updateDisplay() {
             const currentWeekData = getWeekHours(0);
             const currentWeekTotal = currentWeekData.hours.reduce((sum, item) => sum + (item.hours || 0), 0);
-            
+
             const progressPercent = Math.min((currentWeekTotal / 24) * 100, 100);
             document.getElementById('progressFill').style.width = progressPercent + '%';
             document.getElementById('progressText').textContent = `${currentWeekTotal.toFixed(1)} / 24 hours`;
-            
+
             updateWeekDisplay();
-            
+
             if (currentWeekTotal < 24 && currentWeekOffset === 0) {
                 const remaining = 24 - currentWeekTotal;
                 if (remaining <= 8) {
@@ -913,7 +582,9 @@ Sign Out Time: 06:25 AM"></textarea>
             }
         }
 
-        // Initialize everything when page loads
+        // ===============================
+        // Init
+        // ===============================
         document.addEventListener('DOMContentLoaded', function() {
             setCurrentWeek();
             updateDisplay();
