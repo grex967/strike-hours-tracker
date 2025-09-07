@@ -539,20 +539,10 @@ Sign Out Time: 06:25 AM"></textarea>
             
             return {
                 hours: hoursData.filter(item => {
-                    let shiftStartDate;
-                    if (item.timeIn) {
-                        const [inHours] = item.timeIn.split(':').map(Number);
-                        shiftStartDate = new Date(item.date);
-                        
-                        if (inHours < 7) {
-                            shiftStartDate.setDate(shiftStartDate.getDate() - 1);
-                        }
-                        shiftStartDate.setHours(7, 0, 0, 0);
-                    } else {
-                        shiftStartDate = new Date(item.date + 'T07:00:00');
-                    }
-                    
-                    return shiftStartDate >= startOfWeek && shiftStartDate < endOfWeek;
+                    // Use the date as entered - this represents when the shift started
+                    // The union's rule is that shifts belong to the day they start
+                    const itemDate = new Date(item.date + 'T07:00:00');
+                    return itemDate >= startOfWeek && itemDate < endOfWeek;
                 }),
                 startDate: startOfWeek,
                 endDate: endOfWeek
