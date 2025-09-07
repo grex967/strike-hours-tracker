@@ -688,6 +688,7 @@ Sign Out Time: 06:25 AM"></textarea>
             const item = hoursData[existingIndex];
             if (item.timeIn && item.timeOut) {
                 item.hours = calculateHours(item.timeIn, item.timeOut);
+                // DO NOT adjust the date - keep it exactly as entered
             }
             
             saveData();
