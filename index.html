@@ -1,96 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strike Hours Tracker</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 10px; }
-        .container { max-width: 400px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 20px; text-align: center; }
-        .header h1 { font-size: 24px; margin-bottom: 5px; }
-        .header p { opacity: 0.9; font-size: 14px; }
-        .weekly-progress { padding: 20px; background: #f8f9fa; border-bottom: 1px solid #eee; }
-        .progress-bar { background: #e9ecef; border-radius: 10px; height: 20px; overflow: hidden; margin-bottom: 10px; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #28a745, #20c997); transition: width 0.3s ease; border-radius: 10px; }
-        .progress-text { text-align: center; font-weight: bold; color: #495057; }
-        .current-week { text-align: center; color: #6c757d; font-size: 14px; margin-bottom: 10px; }
-        .main-content { padding: 20px; }
-        .add-hours-section { margin-bottom: 30px; }
-        .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #343a40; }
-        .paste-area { width: 100%; min-height: 120px; padding: 15px; border: 2px dashed #dee2e6; border-radius: 10px; font-family: monospace; font-size: 14px; resize: vertical; margin-bottom: 15px; }
-        .paste-area:focus { border-color: #007bff; outline: none; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; }
-        .btn-primary { background: linear-gradient(135deg, #007bff, #0056b3); color: white; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,123,255,0.3); }
-        .btn-secondary { background: #6c757d; color: white; margin-top: 10px; }
-        .manual-entry { display: none; margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #495057; }
-        .form-control { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 16px; }
-        .hours-log { margin-top: 30px; }
-        .log-entry { padding: 15px; margin-bottom: 10px; background: #f8f9fa; border-left: 4px solid #007bff; border-radius: 5px; }
-        .shift-entry { padding: 10px; margin: 5px 0; background: #ffffff; border: 1px solid #dee2e6; border-radius: 4px; }
-        .log-date { font-weight: bold; color: #495057; margin-bottom: 8px; }
-        .log-hours { color: #28a745; font-weight: bold; margin-bottom: 5px; }
-        .log-times { font-size: 14px; color: #6c757d; }
-        .shift-times { font-size: 13px; color: #6c757d; margin-bottom: 3px; }
-        .shift-hours { font-size: 13px; color: #28a745; font-weight: bold; }
-        .alert { padding: 15px; margin-bottom: 15px; border-radius: 5px; font-weight: bold; }
-        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
-        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f1b0b7; }
-        .empty-state { text-align: center; color: #6c757d; font-style: italic; padding: 20px; }
-        .week-selector { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; }
-        .btn-week { background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-size: 14px; cursor: pointer; transition: all 0.2s ease; }
-        .btn-week:hover { background: #0056b3; }
-        .btn-week:disabled { background: #6c757d; cursor: not-allowed; }
-        .current-week-display { font-weight: bold; color: #495057; text-align: center; flex: 1; }
-        .week-summary { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #2196f3; }
-        .week-total { font-size: 18px; font-weight: bold; color: #1976d2; margin-bottom: 5px; }
-        .week-status { font-size: 14px; color: #424242; }
-        .week-status.complete { color: #2e7d32; }
-        .week-status.incomplete { color: #d32f2f; }
-        .log-actions { margin-top: 8px; display: flex; gap: 8px; }
-        .shift-actions { margin-top: 5px; display: flex; gap: 5px; }
-        .btn-edit, .btn-delete { background: none; border: 1px solid #dee2e6; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; }
-        .btn-edit { color: #007bff; border-color: #007bff; }
-        .btn-edit:hover { background: #007bff; color: white; }
-        .btn-delete { color: #dc3545; border-color: #dc3545; }
-        .btn-delete:hover { background: #dc3545; color: white; }
-        .edit-form { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 15px 0; }
-        .edit-form h3 { margin-bottom: 15px; color: #856404; }
-        .edit-actions { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-save { background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
-        .btn-cancel { background: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
-        .quick-dates { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
-        .btn-quick-date { background: #e9ecef; border: 1px solid #dee2e6; padding: 6px 12px; border-radius: 5px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; }
-        .btn-quick-date:hover { background: #007bff; color: white; border-color: #007bff; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Strike Hours Tracker</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 10px; }
+    .container { max-width: 400px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; }
+    .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 20px; text-align: center; }
+    .header h1 { font-size: 24px; margin-bottom: 5px; }
+    .header p { opacity: 0.9; font-size: 14px; }
+    .weekly-progress { padding: 20px; background: #f8f9fa; border-bottom: 1px solid #eee; }
+    .progress-bar { background: #e9ecef; border-radius: 10px; height: 20px; overflow: hidden; margin-bottom: 10px; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #28a745, #20c997); transition: width 0.3s ease; border-radius: 10px; }
+    .progress-text { text-align: center; font-weight: bold; color: #495057; }
+    .current-week { text-align: center; color: #6c757d; font-size: 14px; margin-bottom: 10px; }
+    .main-content { padding: 20px; }
+    .add-hours-section { margin-bottom: 30px; }
+    .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #343a40; }
+    .paste-area { width: 100%; min-height: 120px; padding: 15px; border: 2px dashed #dee2e6; border-radius: 10px; font-family: monospace; font-size: 14px; resize: vertical; margin-bottom: 15px; }
+    .paste-area:focus { border-color: #007bff; outline: none; }
+    .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; }
+    .btn-primary { background: linear-gradient(135deg, #007bff, #0056b3); color: white; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,123,255,0.3); }
+    .btn-secondary { background: #6c757d; color: white; margin-top: 10px; }
+    .manual-entry { display: none; margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #495057; }
+    .form-control { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 16px; }
+    .hours-log { margin-top: 30px; }
+    .log-entry { padding: 15px; margin-bottom: 10px; background: #f8f9fa; border-left: 4px solid #007bff; border-radius: 5px; }
+    .shift-entry { padding: 10px; margin: 5px 0; background: #ffffff; border: 1px solid #dee2e6; border-radius: 4px; }
+    .log-date { font-weight: bold; color: #495057; margin-bottom: 8px; }
+    .log-hours { color: #28a745; font-weight: bold; margin-bottom: 5px; }
+    .log-times { font-size: 14px; color: #6c757d; }
+    .shift-times { font-size: 13px; color: #6c757d; margin-bottom: 3px; }
+    .shift-hours { font-size: 13px; color: #28a745; font-weight: bold; }
+    .alert { padding: 15px; margin-bottom: 15px; border-radius: 5px; font-weight: bold; }
+    .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+    .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f1b0b7; }
+    .empty-state { text-align: center; color: #6c757d; font-style: italic; padding: 20px; }
+    .week-selector { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; }
+    .btn-week { background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-size: 14px; cursor: pointer; transition: all 0.2s ease; }
+    .btn-week:hover { background: #0056b3; }
+    .btn-week:disabled { background: #6c757d; cursor: not-allowed; }
+    .current-week-display { font-weight: bold; color: #495057; text-align: center; flex: 1; }
+    .week-summary { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #2196f3; }
+    .week-total { font-size: 18px; font-weight: bold; color: #1976d2; margin-bottom: 5px; }
+    .week-status { font-size: 14px; color: #424242; }
+    .week-status.complete { color: #2e7d32; }
+    .week-status.incomplete { color: #d32f2f; }
+    .log-actions { margin-top: 8px; display: flex; gap: 8px; }
+    .shift-actions { margin-top: 5px; display: flex; gap: 5px; }
+    .btn-edit, .btn-delete { background: none; border: 1px solid #dee2e6; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; }
+    .btn-edit { color: #007bff; border-color: #007bff; }
+    .btn-edit:hover { background: #007bff; color: white; }
+    .btn-delete { color: #dc3545; border-color: #dc3545; }
+    .btn-delete:hover { background: #dc3545; color: white; }
+    .edit-form { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 15px 0; }
+    .edit-form h3 { margin-bottom: 15px; color: #856404; }
+    .edit-actions { display: flex; gap: 10px; margin-top: 15px; }
+    .btn-save { background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+    .btn-cancel { background: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+    .quick-dates { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+    .btn-quick-date { background: #e9ecef; border: 1px solid #dee2e6; padding: 6px 12px; border-radius: 5px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; }
+    .btn-quick-date:hover { background: #007bff; color: white; border-color: #007bff; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>⚡ Strike Hours</h1>
-            <p>Henry Ford Genesys RN Strike</p>
-        </div>
-        
-        <div class="weekly-progress">
-            <div class="current-week" id="currentWeek"></div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <div class="progress-text" id="progressText">0 / 24 hours</div>
-        </div>
-        
-        <div class="main-content">
-            <div class="add-hours-section">
-                <h2 class="section-title">📧 Add Hours from Email</h2>
-                <textarea 
-                    class="paste-area" 
-                    id="emailPaste" 
-                    placeholder="Paste your confirmation email here...
+  <div class="container">
+    <div class="header">
+      <h1>⚡ Strike Hours</h1>
+      <p>Henry Ford Genesys RN Strike</p>
+    </div>
+
+    <div class="weekly-progress">
+      <div class="current-week" id="currentWeek"></div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-text" id="progressText">0 / 24 hours</div>
+    </div>
+
+    <div class="main-content">
+      <div class="add-hours-section">
+        <h2 class="section-title">📧 Add Hours from Email</h2>
+        <textarea class="paste-area" id="emailPaste" placeholder="Paste your confirmation email here...
 
 Example:
 Thanks for filling out RN Strike Sign Out - Week 1 
@@ -98,507 +93,373 @@ Email: your.email@gmail.com
 Full Name: Your Name
 Choose Current Day: Thursday, September 4, 2025
 Sign Out Time: 06:25 AM"></textarea>
-                
-                <button class="btn btn-primary" onclick="parseEmail()">
-                    📊 Parse Hours
-                </button>
-                
-                <button class="btn btn-secondary" onclick="toggleManualEntry()">
-                    ✏️ Manual Entry
-                </button>
-                
-                <div class="manual-entry" id="manualEntry">
-                    <h3>Manual Entry</h3>
-                    <div class="form-group">
-                        <label>Date:</label>
-                        <input type="date" class="form-control" id="manualDate">
-                    </div>
-                    <div class="form-group">
-                        <label>Clock In Time:</label>
-                        <input type="time" class="form-control" id="manualTimeIn">
-                    </div>
-                    <div class="form-group">
-                        <label>Clock Out Time:</label>
-                        <input type="time" class="form-control" id="manualTimeOut">
-                    </div>
-                    <div class="quick-dates">
-                        <button class="btn-quick-date" onclick="setQuickDate(0)">Today</button>
-                        <button class="btn-quick-date" onclick="setQuickDate(-1)">Yesterday</button>
-                        <button class="btn-quick-date" onclick="setQuickDate(-7)">Last Week</button>
-                    </div>
-                    <button class="btn btn-primary" onclick="addManualEntry()">
-                        ➕ Add Hours
-                    </button>
-                </div>
-            </div>
-            
-            <div id="alertContainer"></div>
-            <div id="editContainer"></div>
-            
-            <div class="hours-log">
-                <h2 class="section-title">📋 Hours Log</h2>
-                
-                <div class="week-selector">
-                    <button class="btn-week" id="prevWeekBtn" onclick="changeWeekView(-1)">← Previous</button>
-                    <span class="current-week-display" id="currentWeekDisplay">This Week</span>
-                    <button class="btn-week" id="nextWeekBtn" onclick="changeWeekView(1)">Next →</button>
-                </div>
-                
-                <div class="week-summary" id="weekSummary">
-                    <div class="week-total">Total: <span id="weekTotalHours">0.0</span> hours</div>
-                    <div class="week-status" id="weekStatus"></div>
-                </div>
-                
-                <div id="hoursLog">
-                    <div class="empty-state">
-                        No hours logged yet. Paste your first confirmation email above!
-                    </div>
-                </div>
-            </div>
+
+        <button class="btn btn-primary" onclick="parseEmail()">📊 Parse Hours</button>
+        <button class="btn btn-secondary" onclick="toggleManualEntry()">✏️ Manual Entry</button>
+
+        <div class="manual-entry" id="manualEntry">
+          <h3>Manual Entry</h3>
+          <div class="form-group">
+            <label>Date:</label>
+            <input type="date" class="form-control" id="manualDate">
+          </div>
+          <div class="form-group">
+            <label>Clock In Time:</label>
+            <input type="time" class="form-control" id="manualTimeIn">
+          </div>
+          <div class="form-group">
+            <label>Clock Out Time:</label>
+            <input type="time" class="form-control" id="manualTimeOut">
+          </div>
+          <div class="quick-dates">
+            <button class="btn-quick-date" onclick="setQuickDate(0)">Today</button>
+            <button class="btn-quick-date" onclick="setQuickDate(-1)">Yesterday</button>
+            <button class="btn-quick-date" onclick="setQuickDate(-7)">Last Week</button>
+          </div>
+          <button class="btn btn-primary" onclick="addManualEntry()">➕ Add Hours</button>
         </div>
+      </div>
+
+      <div id="alertContainer"></div>
+      <div id="editContainer"></div>
+
+      <div class="hours-log">
+        <h2 class="section-title">📋 Hours Log</h2>
+
+        <div class="week-selector">
+          <button class="btn-week" id="prevWeekBtn" onclick="changeWeekView(-1)">← Previous</button>
+          <span class="current-week-display" id="currentWeekDisplay">This Week</span>
+          <button class="btn-week" id="nextWeekBtn" onclick="changeWeekView(1)">Next →</button>
+        </div>
+
+        <div class="week-summary" id="weekSummary">
+          <div class="week-total">Total: <span id="weekTotalHours">0.0</span> hours</div>
+          <div class="week-status" id="weekStatus"></div>
+        </div>
+
+        <div id="hoursLog">
+          <div class="empty-state">No hours logged yet. Paste your first confirmation email above!</div>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <script>
-        // Global variables - new data structure for multiple shifts per day
-        let shiftsData = JSON.parse(localStorage.getItem('strikeShifts') || '[]');
-        let currentWeekOffset = 0;
-        const SHIFT_START_HOUR = 7;
+  <script>
+    // ============ Data / Globals ============
+    let shiftsData = JSON.parse(localStorage.getItem('strikeShifts') || '[]');
+    let currentWeekOffset = 0;
+    const SHIFT_START_HOUR = 7;
 
-        // Utility functions
-        function formatTime(timeStr) {
-            const [hours, minutes] = timeStr.split(':').map(Number);
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            const displayHours = hours % 12 || 12;
-            return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+    // ============ Helpers ============
+    function formatTime(timeStr){
+      const [h,m] = timeStr.split(':').map(Number);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const dh = h % 12 || 12;
+      return `${dh}:${m.toString().padStart(2,'0')} ${ampm}`;
+    }
+    function minutesFromHHMM(s){ const [h,m]=s.split(':').map(Number); return h*60 + m; }
+    function calculateHours(tIn,tOut){
+      const a=minutesFromHHMM(tIn); let b=minutesFromHHMM(tOut);
+      if(b<a) b += 24*60;
+      return Math.round(((b-a)/60)*100)/100;
+    }
+    // if timeIn < 07:00, shift to previous calendar day
+    function getEffectiveDate(baseISODate, timeIn){
+      const mins = minutesFromHHMM(timeIn);
+      if(mins < SHIFT_START_HOUR*60){
+        const [y,m,d] = baseISODate.split('-').map(Number);
+        const dt = new Date(y, m-1, d); // local midnight
+        dt.setDate(dt.getDate()-1);
+        return dt.toISOString().split('T')[0];
+      }
+      return baseISODate;
+    }
+    // NEW: parse ISO 'YYYY-MM-DD' as **local** date (avoid UTC shift)
+    function localDateFromISO(iso){
+      const [y,m,d] = iso.split('-').map(Number);
+      return new Date(y, m-1, d); // local midnight
+    }
+    function generateShiftId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+    function saveData(){ localStorage.setItem('strikeShifts', JSON.stringify(shiftsData)); }
+    function showAlert(msg,type){
+      const c=document.getElementById('alertContainer');
+      const el=document.createElement('div');
+      el.className=`alert alert-${type}`; el.textContent=msg;
+      c.innerHTML=''; c.appendChild(el);
+      setTimeout(()=>{ c.innerHTML=''; }, 5000);
+    }
+
+    // ============ Week windows ============
+    function getWeekShifts(weekOffset=0){
+      const now = new Date();
+      const adjustedNow = new Date(now);
+      if(now.getHours() < SHIFT_START_HOUR) adjustedNow.setDate(now.getDate()-1);
+
+      const start = new Date(adjustedNow);
+      start.setDate(adjustedNow.getDate()-adjustedNow.getDay() + (weekOffset*7));
+      start.setHours(SHIFT_START_HOUR,0,0,0);
+
+      const end = new Date(start);
+      end.setDate(start.getDate()+7);
+      end.setHours(SHIFT_START_HOUR-1,59,59,999);
+
+      return {
+        shifts: shiftsData.filter(shift=>{
+          // interpret shift.date at 07:00 local to respect shift boundary
+          const d = new Date(shift.date + 'T07:00:00');
+          return d >= start && d < end;
+        }),
+        startDate: start, endDate: end
+      };
+    }
+    function groupShiftsByDate(shifts){
+      const grouped = {};
+      for(const s of shifts){
+        (grouped[s.date] ||= []).push(s);
+      }
+      return grouped;
+    }
+    function setCurrentWeek(){
+      const now = new Date();
+      const adjustedNow = new Date(now);
+      if(now.getHours()<SHIFT_START_HOUR) adjustedNow.setDate(now.getDate()-1);
+
+      const start = new Date(adjustedNow);
+      start.setDate(adjustedNow.getDate()-adjustedNow.getDay());
+      start.setHours(SHIFT_START_HOUR,0,0,0);
+
+      const end = new Date(start); end.setDate(start.getDate()+7);
+      const fmt = d => d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      document.getElementById('currentWeek').textContent =
+        `Week of ${fmt(start)} 7AM - ${fmt(new Date(end-1))} 7AM`;
+    }
+
+    // ============ Email parsing ============
+    function extractDataFromEmail(emailText){
+      const isSignOut = emailText.toLowerCase().includes('sign out') || emailText.toLowerCase().includes('sign **out**');
+      const dateRegex = /(?:Choose Current Day|Current Day)[^]*?(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[^]*?(\w+ \d{1,2}, \d{4})/i;
+      const dm = emailText.match(dateRegex);
+      if(!dm) throw new Error('Could not find date in email');
+
+      const baseISODate = new Date(dm[2]).toISOString().split('T')[0];
+
+      let tm = emailText.match(/(\d{1,2})\s*[\*\:\-\s]*\s*(\d{2})\s*(AM|PM)/i);
+      let h, mi, ap;
+      if(tm){ h=+tm[1]; mi=+tm[2]; ap=tm[3].toUpperCase(); }
+      else{
+        const sec = emailText.match(/Sign\s+(?:In|Out)\s+Time[\s\S]*?(AM|PM)/i);
+        if(sec){
+          const nums = sec[0].match(/\d{1,2}/g);
+          const apm = sec[0].match(/(AM|PM)/i);
+          if(nums && nums.length>=2 && apm){ h=+nums[0]; mi=+nums[1]; ap=apm[1].toUpperCase(); }
         }
+      }
+      if(h===undefined || mi===undefined || !ap){
+        const nums = emailText.match(/\d{1,2}/g);
+        const apm = emailText.match(/(AM|PM)/i);
+        if(!(nums && nums.length>=2 && apm)) throw new Error('Could not find time in email. Please use manual entry.');
+        h=+nums.at(-2); mi=+nums.at(-1); ap=apm[1].toUpperCase();
+        if(h>12 || mi>59) throw new Error('Could not parse time from email. Please try manual entry.');
+      }
+      let h24 = h; if(ap==='PM' && h!==12) h24+=12; if(ap==='AM' && h===12) h24=0;
+      const time = `${h24.toString().padStart(2,'0')}:${mi.toString().padStart(2,'0')}`;
 
-        function minutesFromHHMM(timeStr) {
-            const [h, m] = timeStr.split(':').map(Number);
-            return h * 60 + m;
+      // Effective date from the single known time (in/out)
+      const effectiveDate = getEffectiveDate(baseISODate, time);
+
+      return { date: effectiveDate, time, type: isSignOut ? 'out' : 'in' };
+    }
+    function parseEmail(){
+      const txt = document.getElementById('emailPaste').value.trim();
+      if(!txt){ showAlert('Please paste your confirmation email first!','warning'); return; }
+      try{
+        const parsed = extractDataFromEmail(txt);
+        handleEmailEntry(parsed);
+        document.getElementById('emailPaste').value = '';
+        showAlert(`Successfully added ${parsed.type.toUpperCase()} time`, 'success');
+      }catch(e){ showAlert('Error parsing email: ' + e.message, 'danger'); }
+    }
+    function handleEmailEntry(parsed){
+      // find incomplete shift for that date
+      const incomplete = shiftsData.find(s =>
+        s.date === parsed.date &&
+        ((parsed.type==='in' && !s.timeIn) || (parsed.type==='out' && !s.timeOut))
+      );
+      if(incomplete){
+        if(parsed.type==='in') incomplete.timeIn = parsed.time;
+        else incomplete.timeOut = parsed.time;
+        if(incomplete.timeIn && incomplete.timeOut){
+          incomplete.hours = calculateHours(incomplete.timeIn, incomplete.timeOut);
         }
-
-        function calculateHours(timeIn, timeOut) {
-            const inTotal = minutesFromHHMM(timeIn);
-            let outTotal = minutesFromHHMM(timeOut);
-            if (outTotal < inTotal) outTotal += 24 * 60;
-            const totalMinutes = outTotal - inTotal;
-            return Math.round((totalMinutes / 60) * 100) / 100;
-        }
-
-        function getEffectiveDate(baseISODate, timeIn) {
-            const mins = minutesFromHHMM(timeIn);
-            if (mins < SHIFT_START_HOUR * 60) {
-                const d = new Date(baseISODate + 'T00:00:00');
-                d.setDate(d.getDate() - 1);
-                return d.toISOString().split('T')[0];
-            }
-            return baseISODate;
-        }
-
-        function generateShiftId() {
-            return Date.now().toString() + Math.random().toString(36).substr(2, 9);
-        }
-
-        function saveData() {
-            localStorage.setItem('strikeShifts', JSON.stringify(shiftsData));
-        }
-
-        function showAlert(message, type) {
-            const container = document.getElementById('alertContainer');
-            const alert = document.createElement('div');
-            alert.className = `alert alert-${type}`;
-            alert.textContent = message;
-            container.innerHTML = '';
-            container.appendChild(alert);
-            setTimeout(() => { container.innerHTML = ''; }, 5000);
-        }
-
-        // Week calculation functions
-        function getWeekShifts(weekOffset = 0) {
-            const now = new Date();
-            const adjustedNow = new Date(now);
-            if (now.getHours() < SHIFT_START_HOUR) adjustedNow.setDate(now.getDate() - 1);
-
-            const startOfWeek = new Date(adjustedNow);
-            startOfWeek.setDate(adjustedNow.getDate() - adjustedNow.getDay() + (weekOffset * 7));
-            startOfWeek.setHours(SHIFT_START_HOUR, 0, 0, 0);
-
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 7);
-            endOfWeek.setHours(SHIFT_START_HOUR - 1, 59, 59, 999);
-
-            return {
-                shifts: shiftsData.filter(shift => {
-                    const shiftDate = new Date(shift.date + 'T07:00:00');
-                    return shiftDate >= startOfWeek && shiftDate < endOfWeek;
-                }),
-                startDate: startOfWeek,
-                endDate: endOfWeek
-            };
-        }
-
-        function groupShiftsByDate(shifts) {
-            const grouped = {};
-            shifts.forEach(shift => {
-                if (!grouped[shift.date]) {
-                    grouped[shift.date] = [];
-                }
-                grouped[shift.date].push(shift);
-            });
-            return grouped;
-        }
-
-        function setCurrentWeek() {
-            const now = new Date();
-            const adjustedNow = new Date(now);
-            if (now.getHours() < SHIFT_START_HOUR) adjustedNow.setDate(now.getDate() - 1);
-
-            const startOfWeek = new Date(adjustedNow);
-            startOfWeek.setDate(adjustedNow.getDate() - adjustedNow.getDay());
-            startOfWeek.setHours(SHIFT_START_HOUR, 0, 0, 0);
-
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 7);
-            const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-            document.getElementById('currentWeek').textContent = 
-                `Week of ${fmt(startOfWeek)} 7AM - ${fmt(new Date(endOfWeek - 1))} 7AM`;
-        }
-
-        // Email parsing (unchanged logic, but stores as individual shifts)
-        function extractDataFromEmail(emailText) {
-            const isSignOut = emailText.toLowerCase().includes('sign out') || emailText.toLowerCase().includes('sign **out**');
-
-            const dateRegex = /(?:Choose Current Day|Current Day)[^]*?(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[^]*?(\w+ \d{1,2}, \d{4})/i;
-            const dateMatch = emailText.match(dateRegex);
-            if (!dateMatch) throw new Error('Could not find date in email');
-
-            const dateStr = dateMatch[2];
-            const baseISODate = new Date(dateStr).toISOString().split('T')[0];
-
-            let timeMatch = emailText.match(/(\d{1,2})\s*[\*\:\-\s]*\s*(\d{2})\s*(AM|PM)/i);
-            let hours, minutes, ampm;
-
-            if (timeMatch) {
-                hours = parseInt(timeMatch[1]); minutes = parseInt(timeMatch[2]); ampm = timeMatch[3].toUpperCase();
-            } else {
-                const timeSection = emailText.match(/Sign\s+(?:In|Out)\s+Time[\s\S]*?(AM|PM)/i);
-                if (timeSection) {
-                    const numbers = timeSection[0].match(/\d{1,2}/g);
-                    const ampmMatch = timeSection[0].match(/(AM|PM)/i);
-                    if (numbers && numbers.length >= 2 && ampmMatch) {
-                        hours = parseInt(numbers[0]); minutes = parseInt(numbers[1]); ampm = ampmMatch[1].toUpperCase();
-                    }
-                }
-            }
-
-            if (hours === undefined || minutes === undefined || !ampm) {
-                const allNumbers = emailText.match(/\d{1,2}/g);
-                const ampmMatch = emailText.match(/(AM|PM)/i);
-                if (allNumbers && allNumbers.length >= 2 && ampmMatch) {
-                    hours = parseInt(allNumbers[allNumbers.length - 2]);
-                    minutes = parseInt(allNumbers[allNumbers.length - 1]);
-                    ampm = ampmMatch[1].toUpperCase();
-                    if (hours > 12 || minutes > 59) {
-                        throw new Error('Could not parse time from email. Please try manual entry.');
-                    }
-                } else {
-                    throw new Error('Could not find time in email. Please use manual entry or check email format.');
-                }
-            }
-
-            let hour24 = hours;
-            if (ampm === 'PM' && hours !== 12) hour24 += 12;
-            if (ampm === 'AM' && hours === 12) hour24 = 0;
-            const timeStr = `${hour24.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-
-            return {
-                baseDate: baseISODate,
-                time: timeStr,
-                type: isSignOut ? 'out' : 'in',
-                rawEmail: emailText
-            };
-        }
-
-        function parseEmail() {
-            const emailText = document.getElementById('emailPaste').value.trim();
-            if (!emailText) { showAlert('Please paste your confirmation email first!', 'warning'); return; }
-
-            try {
-                const parsed = extractDataFromEmail(emailText);
-                if (parsed) {
-                    handleEmailEntry(parsed);
-                    document.getElementById('emailPaste').value = '';
-                    showAlert(`Successfully added ${parsed.type.toUpperCase()} time`, 'success');
-                } else {
-                    showAlert('Could not parse email. Try manual entry or check the email format.', 'danger');
-                }
-            } catch (error) {
-                showAlert('Error parsing email: ' + error.message, 'danger');
-            }
-        }
-
-        function handleEmailEntry(parsed) {
-            const effectiveDate = getEffectiveDate(parsed.baseDate, parsed.time);
-            
-            // Look for incomplete shift on this date
-            const incompleteShift = shiftsData.find(shift => 
-                shift.date === effectiveDate && 
-                ((parsed.type === 'in' && !shift.timeIn) || (parsed.type === 'out' && !shift.timeOut))
-            );
-
-            if (incompleteShift) {
-                // Complete existing shift
-                if (parsed.type === 'in') {
-                    incompleteShift.timeIn = parsed.time;
-                } else {
-                    incompleteShift.timeOut = parsed.time;
-                }
-                
-                if (incompleteShift.timeIn && incompleteShift.timeOut) {
-                    incompleteShift.hours = calculateHours(incompleteShift.timeIn, incompleteShift.timeOut);
-                }
-            } else {
-                // Create new shift
-                const newShift = {
-                    id: generateShiftId(),
-                    date: effectiveDate,
-                    timeIn: parsed.type === 'in' ? parsed.time : null,
-                    timeOut: parsed.type === 'out' ? parsed.time : null,
-                    hours: 0
-                };
-                shiftsData.push(newShift);
-            }
-
-            saveData();
-            updateDisplay();
-        }
-
-        // Manual entry - creates complete shifts
-        function toggleManualEntry() {
-            const manual = document.getElementById('manualEntry');
-            manual.style.display = manual.style.display === 'none' ? 'block' : 'none';
-            if (manual.style.display === 'block') {
-                document.getElementById('manualDate').value = new Date().toISOString().split('T')[0];
-            }
-        }
-
-        function setQuickDate(daysOffset) {
-            const date = new Date();
-            date.setDate(date.getDate() + daysOffset);
-            document.getElementById('manualDate').value = date.toISOString().split('T')[0];
-        }
-
-        function addManualEntry() {
-            const date = document.getElementById('manualDate').value;
-            const timeIn = document.getElementById('manualTimeIn').value;
-            const timeOut = document.getElementById('manualTimeOut').value;
-
-            if (!date || !timeIn || !timeOut) {
-                showAlert('Please fill in all fields for manual entry', 'warning');
-                return;
-            }
-
-            const hours = calculateHours(timeIn, timeOut);
-
-            // For manual entry, use the EXACT date specified - no 7 AM boundary shifting
-            const newShift = {
-                id: generateShiftId(),
-                date: date,  // Use exactly what the user entered
-                timeIn: timeIn,
-                timeOut: timeOut,
-                hours: hours
-            };
-
-            shiftsData.push(newShift);
-            saveData();
-            updateDisplay();
-
-            document.getElementById('manualTimeIn').value = '';
-            document.getElementById('manualTimeOut').value = '';
-
-            // Parse date manually for success message too
-            const [year, month, day] = date.split('-').map(Number);
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const dateObj = new Date(year, month - 1, day);
-            const dayOfWeek = dateObj.getDay();
-            const dateStr = `${dayNames[dayOfWeek]}, ${monthNames[month - 1]} ${day}`;
-
-            showAlert(`Added ${hours.toFixed(1)} hours for ${dateStr}`, 'success');
-            toggleManualEntry();
-        }
-
-        // Week navigation & display
-        function changeWeekView(direction) {
-            currentWeekOffset += direction;
-            updateWeekDisplay();
-        }
-
-        function updateWeekDisplay() {
-            const weekData = getWeekShifts(currentWeekOffset);
-            const totalHours = weekData.shifts.reduce((sum, shift) => sum + (shift.hours || 0), 0);
-
-            const weekLabel =
-                currentWeekOffset === 0 ? 'This Week' :
-                currentWeekOffset === -1 ? 'Last Week' :
-                currentWeekOffset === 1 ? 'Next Week' :
-                `${Math.abs(currentWeekOffset)} weeks ${currentWeekOffset < 0 ? 'ago' : 'ahead'}`;
-
-            document.getElementById('currentWeekDisplay').textContent = weekLabel;
-            document.getElementById('weekTotalHours').textContent = totalHours.toFixed(1);
-
-            const statusEl = document.getElementById('weekStatus');
-            if (totalHours >= 24) {
-                statusEl.textContent = '✅ Strike pay requirement met!';
-                statusEl.className = 'week-status complete';
-            } else if (currentWeekOffset < 0) {
-                statusEl.textContent = `❌ Short ${(24 - totalHours).toFixed(1)} hours for strike pay`;
-                statusEl.className = 'week-status incomplete';
-            } else {
-                statusEl.textContent = `Need ${(24 - totalHours).toFixed(1)} more hours for strike pay`;
-                statusEl.className = 'week-status';
-            }
-
-            const logContainer = document.getElementById('hoursLog');
-            if (weekData.shifts.length === 0) {
-                logContainer.innerHTML = '<div class="empty-state">No hours logged for this week.</div>';
-            } else {
-                const groupedShifts = groupShiftsByDate(weekData.shifts);
-                const sortedDates = Object.keys(groupedShifts).sort((a, b) => new Date(b) - new Date(a));
-                
-                logContainer.innerHTML = sortedDates.map(date => {
-                    const dayShifts = groupedShifts[date];
-                    const dayTotal = dayShifts.reduce((sum, shift) => sum + (shift.hours || 0), 0);
-                    const dateObj = new Date(date);
-                    const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
-
-                    const shiftsHtml = dayShifts.map(shift => {
-                        const timeStr = shift.timeIn && shift.timeOut
-                            ? `${formatTime(shift.timeIn)} - ${formatTime(shift.timeOut)}`
-                            : shift.timeIn
-                                ? `In: ${formatTime(shift.timeIn)}`
-                                : shift.timeOut
-                                    ? `Out: ${formatTime(shift.timeOut)}`
-                                    : 'Times pending';
-                        
-                        const hoursStr = shift.hours > 0 ? `${shift.hours.toFixed(1)} hours` : 'Calculating...';
-
-                        return `
-                            <div class="shift-entry">
-                                <div class="shift-times">${timeStr}</div>
-                                <div class="shift-hours">${hoursStr}</div>
-                                <div class="shift-actions">
-                                    <button class="btn-edit" onclick="editShift('${shift.id}')">✏️ Edit</button>
-                                    <button class="btn-delete" onclick="deleteShift('${shift.id}')">🗑️ Delete</button>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-
-                    return `
-                        <div class="log-entry">
-                            <div class="log-date">${dateStr}</div>
-                            <div class="log-hours">Total: ${dayTotal.toFixed(1)} hours (${dayShifts.length} shift${dayShifts.length !== 1 ? 's' : ''})</div>
-                            ${shiftsHtml}
-                        </div>
-                    `;
-                }).join('');
-            }
-
-            document.getElementById('nextWeekBtn').disabled = currentWeekOffset >= 0;
-        }
-
-        // Edit / Delete individual shifts
-        function editShift(shiftId) {
-            const shift = shiftsData.find(s => s.id === shiftId);
-            if (!shift) return;
-
-            const editContainer = document.getElementById('editContainer');
-            const dateStr = new Date(shift.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
-            
-            editContainer.innerHTML = `
-                <div class="edit-form">
-                    <h3>Edit Shift for ${dateStr}</h3>
-                    <div class="form-group">
-                        <label>Clock In Time:</label>
-                        <input type="time" class="form-control" id="editTimeIn" value="${shift.timeIn || ''}">
-                    </div>
-                    <div class="form-group">
-                        <label>Clock Out Time:</label>
-                        <input type="time" class="form-control" id="editTimeOut" value="${shift.timeOut || ''}">
-                    </div>
-                    <div class="edit-actions">
-                        <button class="btn-save" onclick="saveShiftEdit('${shiftId}')">💾 Save Changes</button>
-                        <button class="btn-cancel" onclick="cancelEdit()">❌ Cancel</button>
-                    </div>
-                </div>
-            `;
-            editContainer.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function saveShiftEdit(shiftId) {
-            const timeIn = document.getElementById('editTimeIn').value;
-            const timeOut = document.getElementById('editTimeOut').value;
-
-            if (!timeIn || !timeOut) {
-                showAlert('Please enter both clock in and clock out times', 'warning');
-                return;
-            }
-
-            const shift = shiftsData.find(s => s.id === shiftId);
-            if (shift) {
-                const newEffectiveDate = getEffectiveDate(shift.date, timeIn);
-                shift.date = newEffectiveDate;
-                shift.timeIn = timeIn;
-                shift.timeOut = timeOut;
-                shift.hours = calculateHours(timeIn, timeOut);
-
-                saveData();
-                updateDisplay();
-                cancelEdit();
-                showAlert('Shift updated successfully!', 'success');
-            }
-        }
-
-        function cancelEdit() {
-            document.getElementById('editContainer').innerHTML = '';
-        }
-
-        function deleteShift(shiftId) {
-            const shift = shiftsData.find(s => s.id === shiftId);
-            if (shift && confirm(`Are you sure you want to delete this shift?`)) {
-                shiftsData = shiftsData.filter(s => s.id !== shiftId);
-                saveData();
-                updateDisplay();
-                showAlert('Shift deleted successfully!', 'success');
-            }
-        }
-
-        // Main update function
-        function updateDisplay() {
-            const currentWeekData = getWeekShifts(0);
-            const currentWeekTotal = currentWeekData.shifts.reduce((sum, shift) => sum + (shift.hours || 0), 0);
-
-            const progressPercent = Math.min((currentWeekTotal / 24) * 100, 100);
-            document.getElementById('progressFill').style.width = progressPercent + '%';
-            document.getElementById('progressText').textContent = `${currentWeekTotal.toFixed(1)} / 24 hours`;
-
-            updateWeekDisplay();
-
-            if (currentWeekTotal < 24 && currentWeekOffset === 0) {
-                const remaining = 24 - currentWeekTotal;
-                if (remaining <= 8) {
-                    showAlert(`⚠️ You need ${remaining.toFixed(1)} more hours this week for strike pay!`, 'warning');
-                }
-            }
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            setCurrentWeek();
-            updateDisplay();
+      }else{
+        shiftsData.push({
+          id: generateShiftId(),
+          date: parsed.date,
+          timeIn: parsed.type==='in' ? parsed.time : null,
+          timeOut: parsed.type==='out' ? parsed.time : null,
+          hours: 0
         });
-    </script>
+      }
+      saveData(); updateDisplay();
+    }
+
+    // ============ Manual entry ============
+    function toggleManualEntry(){
+      const el = document.getElementById('manualEntry');
+      el.style.display = el.style.display==='none' ? 'block' : 'none';
+      if(el.style.display==='block'){
+        document.getElementById('manualDate').value = new Date().toISOString().split('T')[0];
+      }
+    }
+    function setQuickDate(days){
+      const d = new Date(); d.setDate(d.getDate()+days);
+      document.getElementById('manualDate').value = d.toISOString().split('T')[0];
+    }
+    function addManualEntry(){
+      const date = document.getElementById('manualDate').value;
+      const timeIn = document.getElementById('manualTimeIn').value;
+      const timeOut = document.getElementById('manualTimeOut').value;
+      if(!date || !timeIn || !timeOut){ showAlert('Please fill in all fields for manual entry','warning'); return; }
+
+      // Use the 7AM boundary for manual entries (union rule).
+      // If you want "use exactly the selected calendar date", replace next line with: const effective = date;
+      const effective = getEffectiveDate(date, timeIn);
+
+      const hours = calculateHours(timeIn, timeOut);
+      shiftsData.push({ id: generateShiftId(), date: effective, timeIn, timeOut, hours });
+      saveData(); updateDisplay();
+
+      document.getElementById('manualTimeIn').value='';
+      document.getElementById('manualTimeOut').value='';
+      const nice = localDateFromISO(effective).toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+      showAlert(`Added ${hours.toFixed(1)} hours for ${nice}`, 'success');
+      toggleManualEntry();
+    }
+
+    // ============ Week nav / render ============
+    function changeWeekView(d){ currentWeekOffset += d; updateWeekDisplay(); }
+    function updateWeekDisplay(){
+      const week = getWeekShifts(currentWeekOffset);
+      const total = week.shifts.reduce((s,x)=>s+(x.hours||0),0);
+
+      const label =
+        currentWeekOffset===0 ? 'This Week' :
+        currentWeekOffset===-1 ? 'Last Week' :
+        currentWeekOffset===1 ? 'Next Week' :
+        `${Math.abs(currentWeekOffset)} weeks ${currentWeekOffset<0?'ago':'ahead'}`;
+
+      document.getElementById('currentWeekDisplay').textContent = label;
+      document.getElementById('weekTotalHours').textContent = total.toFixed(1);
+
+      const status = document.getElementById('weekStatus');
+      if(total>=24){ status.textContent='✅ Strike pay requirement met!'; status.className='week-status complete'; }
+      else if(currentWeekOffset<0){ status.textContent=`❌ Short ${(24-total).toFixed(1)} hours for strike pay`; status.className='week-status incomplete'; }
+      else { status.textContent=`Need ${(24-total).toFixed(1)} more hours for strike pay`; status.className='week-status'; }
+
+      const container = document.getElementById('hoursLog');
+      if(week.shifts.length===0){
+        container.innerHTML = '<div class="empty-state">No hours logged for this week.</div>';
+      }else{
+        // group and sort by ISO date (string compare works because YYYY-MM-DD)
+        const grouped = groupShiftsByDate(week.shifts);
+        const sortedDates = Object.keys(grouped).sort((a,b)=> b.localeCompare(a));
+
+        container.innerHTML = sortedDates.map(dateISO=>{
+          const dayShifts = grouped[dateISO];
+          const dayTotal = dayShifts.reduce((s,x)=>s+(x.hours||0),0);
+          const nice = localDateFromISO(dateISO).toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'}); // <-- local
+
+          const shiftsHtml = dayShifts.map(shift=>{
+            const timeStr = shift.timeIn && shift.timeOut ? `${formatTime(shift.timeIn)} - ${formatTime(shift.timeOut)}`
+                        : shift.timeIn ? `In: ${formatTime(shift.timeIn)}`
+                        : shift.timeOut ? `Out: ${formatTime(shift.timeOut)}`
+                        : 'Times pending';
+            const hoursStr = shift.hours>0 ? `${shift.hours.toFixed(1)} hours` : 'Calculating...';
+            return `
+              <div class="shift-entry">
+                <div class="shift-times">${timeStr}</div>
+                <div class="shift-hours">${hoursStr}</div>
+                <div class="shift-actions">
+                  <button class="btn-edit" onclick="editShift('${shift.id}')">✏️ Edit</button>
+                  <button class="btn-delete" onclick="deleteShift('${shift.id}')">🗑️ Delete</button>
+                </div>
+              </div>`;
+          }).join('');
+
+          return `
+            <div class="log-entry">
+              <div class="log-date">${nice}</div>
+              <div class="log-hours">Total: ${dayTotal.toFixed(1)} hours (${dayShifts.length} shift${dayShifts.length!==1?'s':''})</div>
+              ${shiftsHtml}
+            </div>`;
+        }).join('');
+      }
+
+      document.getElementById('nextWeekBtn').disabled = currentWeekOffset>=0;
+    }
+
+    // ============ Edit / Delete ============
+    function editShift(shiftId){
+      const s = shiftsData.find(x=>x.id===shiftId); if(!s) return;
+      const nice = localDateFromISO(s.date).toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+      const edit = document.getElementById('editContainer');
+      edit.innerHTML = `
+        <div class="edit-form">
+          <h3>Edit Shift for ${nice}</h3>
+          <div class="form-group">
+            <label>Clock In Time:</label>
+            <input type="time" class="form-control" id="editTimeIn" value="${s.timeIn||''}">
+          </div>
+          <div class="form-group">
+            <label>Clock Out Time:</label>
+            <input type="time" class="form-control" id="editTimeOut" value="${s.timeOut||''}">
+          </div>
+          <div class="edit-actions">
+            <button class="btn-save" onclick="saveShiftEdit('${shiftId}')">💾 Save Changes</button>
+            <button class="btn-cancel" onclick="cancelEdit()">❌ Cancel</button>
+          </div>
+        </div>`;
+      edit.scrollIntoView({behavior:'smooth'});
+    }
+    function saveShiftEdit(shiftId){
+      const timeIn = document.getElementById('editTimeIn').value;
+      const timeOut = document.getElementById('editTimeOut').value;
+      if(!timeIn || !timeOut){ showAlert('Please enter both clock in and clock out times','warning'); return; }
+
+      const s = shiftsData.find(x=>x.id===shiftId);
+      if(s){
+        const newEffective = getEffectiveDate(s.date, timeIn);
+        s.date = newEffective;
+        s.timeIn = timeIn;
+        s.timeOut = timeOut;
+        s.hours = calculateHours(timeIn, timeOut);
+        saveData(); updateDisplay(); cancelEdit();
+        showAlert('Shift updated successfully!','success');
+      }
+    }
+    function cancelEdit(){ document.getElementById('editContainer').innerHTML=''; }
+    function deleteShift(shiftId){
+      if(confirm('Are you sure you want to delete this shift?')){
+        shiftsData = shiftsData.filter(x=>x.id!==shiftId);
+        saveData(); updateDisplay(); showAlert('Shift deleted successfully!','success');
+      }
+    }
+
+    // ============ Init ============
+    function updateDisplay(){
+      const wk = getWeekShifts(0);
+      const total = wk.shifts.reduce((s,x)=>s+(x.hours||0),0);
+      const pct = Math.min((total/24)*100, 100);
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressText').textContent = `${total.toFixed(1)} / 24 hours`;
+      updateWeekDisplay();
+
+      if(total < 24 && currentWeekOffset===0){
+        const remaining = 24 - total;
+        if(remaining <= 8) showAlert(`⚠️ You need ${remaining.toFixed(1)} more hours this week for strike pay!`,'warning');
+      }
+    }
+    document.addEventListener('DOMContentLoaded', ()=>{ setCurrentWeek(); updateDisplay(); });
+  </script>
 </body>
 </html>
